@@ -2,6 +2,9 @@
 import argparse
 # Module to represent filesystem paths which is able to handle paths for different OS.
 from pathlib import Path
+# Library to show progress bars on the command line
+from tqdm import tqdm
+import time
 
 
 # Colours for output to terminal (Blender Style)
@@ -18,6 +21,12 @@ class OutputColours:
 
 
 # ------------------------------------------------ Filetype Definitions ------------------------------------------------
+# Glob-style patterns for input images
+image_pattern = "*[.jpeg][.jpg]"
+# Glob-style pattern for image labels
+label_pattern = "*.xml"
+# Image label file format
+label_ext = ".xml"
 # File extension for the label map file
 labelmap_ext = ".pbtxt"
 # File extension for the output file
@@ -87,4 +96,40 @@ if args.force_overwrite:
     print(f"{OutputColours.WARNING}WARNING: the {OutputColours.BOLD}-f{OutputColours.END}{OutputColours.WARNING} flag "
           f"allows the program to overwrite existing files on your system, and recursively create directories if you "
           f"specify a directory that does not exist. Only use it if you understand this.{OutputColours.END}")
+# ----------------------------------------------------------------------------------------------------------------------
+
+# -------------------------------------------------- Glob Input Files --------------------------------------------------
+input_images = sorted(args.dataset.glob(image_pattern))
+print(f"{OutputColours.INFO}[INFO] Found {input_images.__len__()} images.{OutputColours.END}")
+input_labels = sorted(args.dataset.glob(label_pattern))
+print(f"{OutputColours.INFO}[INFO] Found {input_labels.__len__()} labels.{OutputColours.END}")
+# ----------------------------------------------------------------------------------------------------------------------
+
+# ------------------------------------------ Check for Labels Matching Images ------------------------------------------
+# It may be the case that the user has not labelled all the images in the folder, or some images are missing. Here we
+# pair them up and only process matching pairs. Look through the images as they could be either .jpg or .jpeg, but
+# labels are always .xml. The user is also unlikely to have created labels without an image.
+input_pairs = []
+for image_file in tqdm(input_images, desc=f"{OutputColours.INFO}[INFO] Pairing images and labels...", unit=" images"):
+    # Get the image file name, and replace the extension with .xml to check whether a matching label file exists
+    image_label_test = image_file.with_suffix(label_ext)
+    if image_label_test in input_labels:
+        # If a label exists for that image, add it to the array of input pairs
+        input_pairs.append([image_file, image_label_test])
+    else:
+        # Warn the user in the case that an image doesn't seem to have a label
+        print(f"{OutputColours.WARNING}[WARN] No label found for {image_file.__str__()}{OutputColours.END}")
+
+# Print the number of input images to allow the user to check this is what they were expecting.
+print(f"{OutputColours.INFO}[INFO] Found {input_pairs.__len__()} pairs of images and labels.{OutputColours.END}")
+
+# Warn the user about the number of unused images
+if input_pairs.__len__() < input_images.__len__():
+    print(f"{OutputColours.WARNING}[WARN] {input_images.__len__() - input_pairs.__len__()} images unused as they aren't"
+          f" labelled. Image labels should have the same name as the image.{OutputColours.END}")
+
+# Warn the user about the number of unused labels
+if input_pairs.__len__() < input_labels.__len__():
+    print(f"{OutputColours.WARNING}[WARN] {input_labels.__len__() - input_pairs.__len__()} labels unused as they have "
+          f"no matching image. Image labels should have the same name as the image.{OutputColours.END}")
 # ----------------------------------------------------------------------------------------------------------------------
