@@ -21,12 +21,27 @@ datasets for TensorFlow.
 - A working TensorFlow install for Python to use (See https://www.tensorflow.org/install)
 - (Preferably) A Python [venv](https://docs.python.org/3/library/venv.html) to avoid any dependency conflicts.
 - Install the pip dependencies from the `requirements.txt` file as shown below.
+- Installing the `object_detection` module from [TensorFlow Model Garden](https://github.com/tensorflow/models) as shown
+  below.
 
 ### Installing Dependencies With `pip`
 - Navigate to the locally cloned repo in a terminal.
 - If you have a venv (which you should...), activate it with `source .venv/bin/activate` on Linux or 
   `.\tf2_api_env\Scripts\Activate.ps1` on Windows. You should see `(venv)` or similar appear on your terminal.
 - Run `pip install -r requirements.txt`
+
+### Installing the object_detection Module
+The documentation for this step can be found at 
+https://github.com/tensorflow/models/tree/master/research/object_detection.
+- Locally clone the repo with `git clone https://github.com/tensorflow/models.git`. (If you have slow internet you can
+  set the depth to 1 to only download current commits with 
+  `git clone https://github.com/tensorflow/models.git --depth 1`).
+- In a command prompt (starting from the folder containing the __models__ repo), navigate to the __research__ folder in 
+  the __models__ repo: `cd ./models/research/`.
+- Copy the object_detection `setup.py` to the working directory: `cp ./object_detection/packages/tf2/setup.py .`
+- If you're using a `venv`, make sure it is activated like in the step above!
+- Install the module with `python -m pip install .`
+- If all is successful, you can test the module by running `python object_detection/builders/model_builder_tf2_test.py`
 
 ## Usage
 Available options can be viewed with `python Pascal_To_TF_Record.py --help`:
