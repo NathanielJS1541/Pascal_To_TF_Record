@@ -78,7 +78,7 @@ argument_parser.add_argument("-o", "--output", required=True, type=Path,
 argument_parser.add_argument("-s", "--skip-difficult", action="store_true",
                              help=f"Skip any labelled images that have been marked as {OutputColours.INFO}difficult"
                                   f"{OutputColours.END} in the labelling program.")
-argument_parser.add_argument("-f", "--force-overwrite", action="store_true",
+argument_parser.add_argument("-f", "--force", action="store_true",
                              help=f"If there already exists a file with the desired output path and "
                                   f"file name, overwrite it. {OutputColours.BOLD}{OutputColours.WARNING}WARNING: "
                                   f"May cause data loss!{OutputColours.END} Also allows recursive creation of "
@@ -192,7 +192,7 @@ args = argument_parser.parse_args()
 
 # -------------------------------------------------- Data Validation ---------------------------------------------------
 # Just warn the user about using the -f flag when it is not needed
-if args.force_overwrite:
+if args.force:
     print(f"{OutputColours.WARNING}[WARN] The {OutputColours.BOLD}-f{OutputColours.END}{OutputColours.WARNING} flag "
           f"allows the program to overwrite existing files on your system, and recursively create directories if you "
           f"specify a directory that does not exist. Only use it if you understand this.{OutputColours.END}")
@@ -218,10 +218,10 @@ elif args.label_map.suffix != labelmap_ext:
 if args.output.suffix != output_ext:
     raise FileExistsError(f"The wrong file extension was used. File extension should be {output_ext}, not "
                           f".{args.output.suffix}.")
-elif args.output.exists() and args.output.is_file() and not args.force_overwrite:
+elif args.output.exists() and args.output.is_file() and not args.force:
     raise FileExistsError(f"The specified output file already exists. If you're sure you want to overwrite, use the "
                           f"{OutputColours.BOLD}-f{OutputColours.END} flag.")
-elif args.output.exists() and args.output.is_file() and args.force_overwrite:
+elif args.output.exists() and args.output.is_file() and args.force:
     # If the file already exists, but the -f flag is set, remove the file
     if args.verbose:
         # If being verbose, print the name of the file we are removing
@@ -231,10 +231,10 @@ elif args.output.exists() and args.output.is_file() and args.force_overwrite:
 elif args.output.is_dir():
     raise ValueError(f"The specified output was a directory, not a file. The output is required to be a file in the "
                      f"{output_ext} format")
-elif not args.output.parent.exists() and not args.force_overwrite:
+elif not args.output.parent.exists() and not args.force:
     raise ValueError(f"The parent directory of the specified output file does not exist. By default the directory will "
                      f"not be created. Use {OutputColours.BOLD}-f{OutputColours.END} to override this.")
-elif not args.output.parent.exists() and args.force_overwrite:
+elif not args.output.parent.exists() and args.force:
     if args.verbose:
         # If being verbose, print the name of the folder we are creating
         print(f"{OutputColours.VERBOSE}[DEBUG] Output parent folder {args.output.parent.__str__()} does not exist. "
